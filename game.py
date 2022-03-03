@@ -61,8 +61,8 @@ class Game:
         b8 = Block()
         b8.draw(830, 225, self.game_window, BLOCKCOLORFILLBLUE)
 
-        b8 = Block()
-        b8.draw(830, 225+50, self.game_window, BLOCKCOLORFILLWHITE)
+        b88 = Block()
+        b88.draw(830, 225+50, self.game_window, BLOCKCOLORFILLWHITE)
 
         # B6
         b8 = Block()
@@ -85,7 +85,7 @@ class Game:
         b13 = Block()
         b13.draw(830-50, 475+75, self.game_window, BLOCKCOLORFILLWHITE)
 
-        self.blocks = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13]
+        self.blocks = [b1, b2, b3, b33, b4, b5, b6, b7, b8, b88, b9, b10, b11, b12, b13]
 
 if __name__ == "__main__":
     game = Game()
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameActive = False
-        game.game_window.fill((BOARDCOLOR))        
+        game.game_window.fill((BOARDCOLOR))      
         game.draw_grid()
         pygame.display.flip()
 
