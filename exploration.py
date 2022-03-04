@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import * 
 from block import Block
 from grid import Grid
-import random
+from agent import Agent
 
 
 # GAME WINDOW
@@ -27,6 +27,7 @@ class Game:
         self.game_window = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
         pygame.display.set_caption("Taiji")
         self.grid = Grid()
+        self.agent = Agent()
 
     def display(self):
         pygame.display.flip()
@@ -100,13 +101,7 @@ class Game:
 
     def getAgentMove(self):
         while(self.agentsTurn == True):
-            print("agent tries placing")
-            self.selectedType = random.randint(1,4)
-            print(self.selectedType)
-            x = random.randint(280,625)
-            y = random.randint(280,625)
-            pos = (x,y)
-            print(pos)
+            pos = self.agent.getRandomMove(self.selectedType)
             self.placeTile(pos)
 
     def selectTile(self, pos):
