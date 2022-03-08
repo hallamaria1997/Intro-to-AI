@@ -3,6 +3,7 @@ from pygame.locals import *
 from block import Block
 from grid import Grid
 from agent import Agent
+from agent_thordur import AgentAPI
 import numpy as np
 
 # GAME WINDOW
@@ -26,8 +27,8 @@ class Game:
         self.game_window = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
         pygame.display.set_caption("Taiji")
         self.grid = Grid()
-        self.agent = Agent()
         self.board = [0]*9*9
+        self.agent = AgentAPI(name='Computer', board=self)
         self.white_block_info = [{'x': 20, 'y': 225, 'type': 1}, 
                                 {'x': 20,'y': 350, 'type': 2}, 
                                 {'x': 20, 'y': 475, 'type': 3},
@@ -69,7 +70,7 @@ class Game:
 
     def getAgentMove(self):
         while(self.agentsTurn == True):
-            pos, self.selectedType = self.agent.getRandomMove(self.selectedType)
+            pos, self.selectedType = self.agent.make_move()
             self.placeTile(pos)
 
     def selectTile(self, pos):

@@ -114,13 +114,23 @@ class Agent:
 		pos = move[0]
 		r = move[1]
 		c = move[2]
+		
+		print('Place tile on {} r={}, c={}'.format(pos,r,c))
+		
+		if r == 1 and c == 0:
+			return (pos), 1
+		elif r == 0 and c == 1:
+			return (pos), 2
+		elif r == -1 and c == 0:
+			return (pos[0] + r, pos[1] + c), 3
+		elif r == 0 and c == -1:
+			return (pos[0] + r, pos[1] + c), 4
 
-		print('Place tile on {}'.format(pos))
-		self.boardAPI.place_tile(pos, r, c)
+		#self.boardAPI.place_tile(pos, r, c)
 
-		self.print_board()
-		self.print_paths()
-		return
+		# self.print_board()
+		# self.print_paths()
+		# return
 
 	def print_paths(self):
 		self.update_board()
@@ -139,4 +149,4 @@ class AgentAPI:
 		self.agent = Agent(name=name, board=board)
 
 	def make_move(self):
-		self.agent.make_move()
+		return self.agent.make_move()
