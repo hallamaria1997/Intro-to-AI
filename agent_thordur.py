@@ -41,7 +41,7 @@ class Agent:
 			return False
 		if pos[1] + c < 0:
 			return False
-		if not np.isnan(self.board[pos]) or not np.isnan(self.board[pos[0]+r, pos[1]+c]):
+		if self.board[pos] != 0 or self.board[pos[0]+r, pos[1]+c] != 0:
 			return False
 		return True
 	
@@ -124,11 +124,11 @@ class Agent:
 
 	def print_paths(self):
 		self.update_board()
-		zero_paths = self.find_paths(0)
 		one_paths = self.find_paths(1)
+		two_paths = self.find_paths(2)
 		
-		print('Longest sequence of zeros: ', len(zero_paths[0]))
-		print('Longest sequence of ones: ', len(one_paths[0]))
+		print('Longest sequence of zeros: ', len(one_paths[0]))
+		print('Longest sequence of ones: ', len(two_paths[0]))
 
 	def print_board(self):
 		print(self.board)
@@ -138,5 +138,5 @@ class AgentAPI:
 	def __init__(self, name, board):
 		self.agent = Agent(name=name, board=board)
 
-	def make_move(self, ):
+	def make_move(self):
 		self.agent.make_move()

@@ -11,15 +11,15 @@ class Board:
 		self.one_paths = []
 		self.zero_paths = []
 		# We will probably change this to 0 .....
-		self.board[:,:] = np.NaN
+		self.board[:,:] = 0
 	
 	def get_board(self):
 		return self.board
 
 	def place_tile(self, pos, r, c):
 		# .....and change this to 1 and -1
-		self.board[pos] = 0
-		self.board[pos[0] + r, pos[1] + c] = 1
+		self.board[pos] = 1
+		self.board[pos[0] + r, pos[1] + c] = 2
 
 class BoardAPI:
 	# An encapsulation for the Board class
