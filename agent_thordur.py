@@ -11,6 +11,7 @@ class Agent:
 		self.available_moves = []
 		self.one_paths = []
 		self.zero_paths = []
+		self.player = 2 # temporary fix to indicate which side agent is playing (would)
 	
 	def update_board(self):
 		self.board = self.boardAPI.get_board()
@@ -109,6 +110,9 @@ class Agent:
 		black_paths = self.find_paths(2)
 		return len(white_paths[0]) - len(black_paths[0])
 
+	def minimax(self, boardInstance, player, depth):
+		print("From minimax: ", boardInstance, player, depth)
+
 	def make_move(self):
 		# Makes a random move
 		# Does not (yet) know the available positions.
@@ -123,6 +127,8 @@ class Agent:
 		pos = move[0]
 		r = move[1]
 		c = move[2]
+
+		self.minimax(self.board, self.player, 0)
 		
 		print('available moves: ', len(self.available_moves))
 		print('Place tile on {} r={}, c={}'.format(pos,r,c))
