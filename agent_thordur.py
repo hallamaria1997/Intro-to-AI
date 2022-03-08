@@ -8,7 +8,7 @@ class Agent:
 		self.update_board()
 		self.n_rows, self.n_cols = self.board.shape
 		self.dirs = ['l', 'r', 'u', 'd']
-		self.available_moves = []	# Maybe useful later
+		self.available_moves = []
 		self.one_paths = []
 		self.zero_paths = []
 	
@@ -16,6 +16,7 @@ class Agent:
 		self.board = self.boardAPI.get_board()
 
 	def get_r_c(self, dir):
+		# Translate the direction into numbers
 		if dir == 'r':
 			r = 0
 			c = 1
@@ -31,6 +32,7 @@ class Agent:
 		return r, c
 	
 	def position_ok(self, pos, r, c):
+		# Check if the position is ok
 		self.update_board()
 
 		if pos[0] + r + 1 > self.n_rows:
@@ -101,12 +103,19 @@ class Agent:
 		paths = self.merge_paths(adj_lists)
 
 		return paths
+	
+	def eval(self):
+		white_paths = self.find_paths(1)
+		black_paths = self.find_paths(2)
+		return len(white_paths[0]) - len(black_paths[0])
 
 	def make_move(self):
 		# Makes a random move
 		# Does not (yet) know the available positions.
 		print('\n{} making move'.format(self.name))
 		self.update_board()
+		self.print_paths()
+		self.print_board()
 
 		# Find available moves and pick a random one
 		self.update_available_moves()
@@ -115,6 +124,7 @@ class Agent:
 		r = move[1]
 		c = move[2]
 		
+		print('available moves: ', len(self.available_moves))
 		print('Place tile on {} r={}, c={}'.format(pos,r,c))
 		
 		if r == 1 and c == 0:
@@ -126,19 +136,14 @@ class Agent:
 		elif r == 0 and c == -1:
 			return (pos[0] + r, pos[1] + c), 4
 
-		#self.boardAPI.place_tile(pos, r, c)
-
-		# self.print_board()
-		# self.print_paths()
-		# return
-
 	def print_paths(self):
 		self.update_board()
 		one_paths = self.find_paths(1)
 		two_paths = self.find_paths(2)
 		
-		print('Longest sequence of zeros: ', len(one_paths[0]))
-		print('Longest sequence of ones: ', len(two_paths[0]))
+		print('Longest sequence of whites: ', len(one_paths[0]))
+		print('Longest sequence of blues: ', len(two_paths[0]))
+		print('Evaluation function: ', self.eval())
 
 	def print_board(self):
 		print(self.board)
