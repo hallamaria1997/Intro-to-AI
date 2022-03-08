@@ -3,6 +3,7 @@ from pygame.locals import *
 from block import Block
 from grid import Grid
 from agent import Agent
+import numpy as np
 
 # GAME WINDOW
 WINDOWWIDTH = 900
@@ -26,6 +27,7 @@ class Game:
         pygame.display.set_caption("Taiji")
         self.grid = Grid()
         self.agent = Agent()
+        self.board = [0]*9*9
         self.white_block_info = [{'x': 20, 'y': 225, 'type': 1}, 
                                 {'x': 20,'y': 350, 'type': 2}, 
                                 {'x': 20, 'y': 475, 'type': 3},
@@ -35,7 +37,6 @@ class Game:
                                 {'x': 830, 'y': 475, 'type': 3},
                                 {'x': 780, 'y': 550, 'type': 4},
                                 {'x': 830, 'y': 550, 'type': 4}]
-        
         self.blue_block_info = [{'x': 20, 'y': 275, 'type': 1}, 
                                 {'x': 70,'y': 350, 'type': 2}, 
                                 {'x': 20, 'y': 425, 'type': 3},
@@ -45,8 +46,6 @@ class Game:
                                 {'x': 830, 'y': 425, 'type': 3}, 
                                 {'x': 780, 'y': 550, 'type': 4}]
         self.blocks = []
-
-
     
     def display(self):
         pygame.display.flip()
@@ -89,44 +88,41 @@ class Game:
     
     def validateMove(self, index):
         if(self.selectedType == 1 \
-            and (index + 1) % 9 > 0 \
+            and (index + 1) < 72 \
             and self.grid.rectsColors[index] == BLOCKCOLOR \
-            and self.grid.rectsColors[index + 1] == BLOCKCOLOR):
+            and self.grid.rectsColors[index + 9] == BLOCKCOLOR):
             return True
 
         elif(self.selectedType == 2 \
-            and (index + 1) < 72 \
-            and self.grid.rectsColors[index] == BLOCKCOLOR \
-            and self.grid.rectsColors[index + 9] == BLOCKCOLOR):
-            return True
-
-        elif(self.selectedType == 3 \
             and (index + 1) % 9 > 0 \
             and self.grid.rectsColors[index] == BLOCKCOLOR \
             and self.grid.rectsColors[index + 1] == BLOCKCOLOR):
             return True
 
-        elif(self.selectedType == 4 \
+        elif(self.selectedType == 3 \
             and (index + 1) < 72 \
             and self.grid.rectsColors[index] == BLOCKCOLOR \
             and self.grid.rectsColors[index + 9] == BLOCKCOLOR):
             return True
 
-    def placeTile(self,pos):
+        elif(self.selectedType == 4 \
+            and (index + 1) % 9 > 0 \
+            and self.grid.rectsColors[index] == BLOCKCOLOR \
+            and self.grid.rectsColors[index + 1] == BLOCKCOLOR):
+            return True
+    
+    def get_board(self):
+        return np.reshape(self.board, (9,9))
+
+    def placeTile(self, pos):
+        print(np.reshape(self.board, (9,9)))
         index = 0
         for r in self.grid.rects:
             if r.collidepoint(pos):
                 self.validated = self.validateMove(index)
                 if(self.selectedType == 1 and self.validated):
-                    self.grid.rectsColors[index] = BLOCKCOLORFILLWHITE
-                    self.grid.rectsColors[index + 1] = BLOCKCOLORFILLBLUE
-                    self.grid.width[index] = 100
-                    self.grid.width[index + 1] = 100
-                    self.tileSelected=[]
-                    self.validated = False
-                    self.agentsTurn = not self.agentsTurn
-                    return
-                elif(self.selectedType == 2  and self.validated):
+                    self.board[index] = 1
+                    self.board[index + 9] = 2 
                     self.grid.rectsColors[index] = BLOCKCOLORFILLWHITE
                     self.grid.rectsColors[index + 9] = BLOCKCOLORFILLBLUE
                     self.grid.width[index] = 100
@@ -135,20 +131,35 @@ class Game:
                     self.validated = False
                     self.agentsTurn = not self.agentsTurn
                     return
-                elif(self.selectedType == 3  and self.validated):
-                    self.grid.rectsColors[index] = BLOCKCOLORFILLBLUE
-                    self.grid.rectsColors[index + 1] = BLOCKCOLORFILLWHITE
+                elif(self.selectedType == 2  and self.validated):
+                    self.board[index] = 1
+                    self.board[index + 1] = 2 
+                    self.grid.rectsColors[index] = BLOCKCOLORFILLWHITE
+                    self.grid.rectsColors[index + 1] = BLOCKCOLORFILLBLUE
                     self.grid.width[index] = 100
                     self.grid.width[index + 1] = 100
                     self.tileSelected=[]
                     self.validated = False
                     self.agentsTurn = not self.agentsTurn
                     return
-                elif(self.selectedType == 4  and self.validated):
+                elif(self.selectedType == 3  and self.validated):
+                    self.board[index] = 1
+                    self.board[index + 9] = 2 
                     self.grid.rectsColors[index] = BLOCKCOLORFILLBLUE
                     self.grid.rectsColors[index + 9] = BLOCKCOLORFILLWHITE
                     self.grid.width[index] = 100
                     self.grid.width[index + 9] = 100
+                    self.tileSelected=[]
+                    self.validated = False
+                    self.agentsTurn = not self.agentsTurn
+                    return
+                elif(self.selectedType == 4  and self.validated):
+                    self.board[index] = 1
+                    self.board[index + 1] = 2 
+                    self.grid.rectsColors[index] = BLOCKCOLORFILLBLUE
+                    self.grid.rectsColors[index + 1] = BLOCKCOLORFILLWHITE
+                    self.grid.width[index] = 100
+                    self.grid.width[index + 1] = 100
                     self.tileSelected=[]
                     self.validated = False
                     self.agentsTurn = not self.agentsTurn
