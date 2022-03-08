@@ -8,10 +8,13 @@ class Agent:
 		self.update_board()
 		self.n_rows, self.n_cols = self.board.shape
 		self.dirs = ['l', 'r', 'u', 'd']
+<<<<<<< HEAD
 		self.available_moves = []
 		self.one_paths = []
 		self.zero_paths = []
 		self.player = 2 # temporary fix to indicate which side agent is playing (would)
+=======
+>>>>>>> b6bb5f841d6ee6545584e35bd43d76f4a4efbda7
 	
 	def update_board(self):
 		self.board = self.boardAPI.get_board()
@@ -32,35 +35,35 @@ class Agent:
 			c = 0
 		return r, c
 	
-	def position_ok(self, pos, r, c):
+	def position_ok(self, board, pos, r, c):
 		# Check if the position is ok
-		self.update_board()
+		n_rows, n_cols = board.shape
 
-		if pos[0] + r + 1 > self.n_rows:
+		if pos[0] + r + 1 > n_rows:
 			return False
 		if pos[0] + r < 0:
 			return False
-		if pos[1] + c + 1 > self.n_cols:
+		if pos[1] + c + 1 > n_cols:
 			return False
 		if pos[1] + c < 0:
 			return False
-		if self.board[pos] != 0 or self.board[pos[0]+r, pos[1]+c] != 0:
+		if board[pos] != 0 or board[pos[0]+r, pos[1]+c] != 0:
 			return False
 		return True
 	
-	def update_available_moves(self):
-		self.board = self.boardAPI.get_board()
+	def get_available_moves(self, board):
 		moves = []
+		rows, cols = board.shape
 
-		for i in range(self.n_rows):
-			for j in range(self.n_cols):
+		for i in range(rows):
+			for j in range(cols):
 				for d in self.dirs:
 					pos = (i, j)
 					r, c = self.get_r_c(d)
-					if self.position_ok(pos, r, c):
+					if self.position_ok(board, pos, r, c):
 						moves.append((pos, r, c))
 
-		self.available_moves = moves
+		return moves
 		
 	def is_adj(self, c1, c2):
 		# Adjacent is only the cell directly above or by the side,
@@ -86,10 +89,9 @@ class Agent:
 		adj_lists = [i for i in adj_lists if len(i) > 0]
 		return adj_lists
 
-	def find_paths(self, n):
+	def find_paths(self, board, n):
 		# Locations of the value n on the board
-		self.update_board()
-		locs = np.where(self.board==n)
+		locs = np.where(board==n)
 		coords = list(zip(locs[0], locs[1]))
 		adj_lists = []
 
@@ -105,9 +107,9 @@ class Agent:
 
 		return paths
 	
-	def eval(self):
-		white_paths = self.find_paths(1)
-		black_paths = self.find_paths(2)
+	def eval(self, board):
+		white_paths = self.find_paths(board, 1)
+		black_paths = self.find_paths(board, 2)
 		return len(white_paths[0]) - len(black_paths[0])
 
 	def minimax(self, boardInstance, player, depth):
@@ -122,15 +124,16 @@ class Agent:
 		self.print_board()
 
 		# Find available moves and pick a random one
-		self.update_available_moves()
-		move = self.available_moves[random.randint(0, len(self.available_moves)-1)]
+		available_moves = self.get_available_moves(self.board)
+		# self.update_available_moves()
+		move = available_moves[random.randint(0, len(available_moves)-1)]
 		pos = move[0]
 		r = move[1]
 		c = move[2]
 
 		self.minimax(self.board, self.player, 0)
 		
-		print('available moves: ', len(self.available_moves))
+		print('available moves: ', len(available_moves))
 		print('Place tile on {} r={}, c={}'.format(pos,r,c))
 		
 		if r == 1 and c == 0:
@@ -144,12 +147,12 @@ class Agent:
 
 	def print_paths(self):
 		self.update_board()
-		one_paths = self.find_paths(1)
-		two_paths = self.find_paths(2)
+		one_paths = self.find_paths(self.board, 1)
+		two_paths = self.find_paths(self.board, 2)
 		
 		print('Longest sequence of whites: ', len(one_paths[0]))
 		print('Longest sequence of blues: ', len(two_paths[0]))
-		print('Evaluation function: ', self.eval())
+		print('Evaluation function: ', self.eval(self.board))
 
 	def print_board(self):
 		print(self.board)
