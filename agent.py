@@ -4,7 +4,6 @@ class Agent:
 
    #def __init__(self):
     
-
     def getRandomMove(self, selectedType):
         print("agent tries placing random move")
         self.selectedType = random.randint(1,4)
@@ -13,4 +12,4 @@ class Agent:
         y = random.randint(280,625)
         pos = (x,y)
         print(pos)
-        return pos
+        return pos, self.selectedType
