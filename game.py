@@ -71,7 +71,8 @@ class Game:
     def getAgentMove(self):
         while(self.agentsTurn == True):
             pos, self.selectedType = self.agent.make_move()
-            self.placeTile(pos)
+            mod_pos = ((50*pos[0])+255, (50*pos[1])+255)
+            self.placeTile(mod_pos)
 
     def selectTile(self, pos):
         for b in self.blocks:
@@ -116,7 +117,6 @@ class Game:
         return np.reshape(self.board, (9,9))
 
     def placeTile(self, pos):
-        print(np.reshape(self.board, (9,9)))
         index = 0
         for r in self.grid.rects:
             if r.collidepoint(pos):
