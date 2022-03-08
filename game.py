@@ -144,8 +144,8 @@ class Game:
                     self.agentsTurn = not self.agentsTurn
                     return
                 elif(self.selectedType == 3  and self.validated):
-                    self.board[index] = 1
-                    self.board[index + 9] = 2 
+                    self.board[index] = 2
+                    self.board[index + 9] = 1
                     self.grid.rectsColors[index] = BLOCKCOLORFILLBLUE
                     self.grid.rectsColors[index + 9] = BLOCKCOLORFILLWHITE
                     self.grid.width[index] = 100
@@ -155,8 +155,8 @@ class Game:
                     self.agentsTurn = not self.agentsTurn
                     return
                 elif(self.selectedType == 4  and self.validated):
-                    self.board[index] = 1
-                    self.board[index + 1] = 2 
+                    self.board[index] = 2
+                    self.board[index + 1] = 1
                     self.grid.rectsColors[index] = BLOCKCOLORFILLBLUE
                     self.grid.rectsColors[index + 1] = BLOCKCOLORFILLWHITE
                     self.grid.width[index] = 100
@@ -195,6 +195,7 @@ if __name__ == "__main__":
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 game.action(pos)
+                print(game.get_board())
         game.game_window.fill((BOARDCOLOR)) 
         game.draw_grid() 
         game.draw_blocks()      
