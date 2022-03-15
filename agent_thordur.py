@@ -8,13 +8,7 @@ class Agent:
 		self.update_board()
 		self.n_rows, self.n_cols = self.board.shape
 		self.dirs = ['l', 'r', 'u', 'd']
-<<<<<<< HEAD
-		self.available_moves = []
-		self.one_paths = []
-		self.zero_paths = []
-		self.player = 2 # temporary fix to indicate which side agent is playing (would)
-=======
->>>>>>> b6bb5f841d6ee6545584e35bd43d76f4a4efbda7
+		self.player = 1 # temporary solution: indicates this is the second player. Will later be able to distinguish between two agents
 	
 	def update_board(self):
 		self.board = self.boardAPI.get_board()
@@ -47,7 +41,7 @@ class Agent:
 			return False
 		if pos[1] + c < 0:
 			return False
-		if board[pos] != 0 or board[pos[0]+r, pos[1]+c] != 0:
+		if (board[pos] != 0 or board[(pos[0]+r, pos[1]+c)] != 0):
 			return False
 		return True
 	
@@ -107,34 +101,112 @@ class Agent:
 
 		return paths
 	
-	def eval(self, board):
+	def eval(self, board, maxRow):
+
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
-		return len(white_paths[0]) - len(black_paths[0])
 
-	def minimax(self, boardInstance, player, depth):
-		print("From minimax: ", boardInstance, player, depth)
+		#print(white_paths[0])
+		#print(black_paths[0])
+
+		if(maxRow):
+			return len(white_paths[0]) - len(black_paths[0])
+		else:
+			return len(black_paths[0]) - len(white_paths[0])
+			
+
+	def minimax(self, boardInstance, player, depth, maxRow):
+
+		if(maxRow):
+			currentParentScore = -81
+		else:
+			currentParentScore = 81
+
+		currentParentMove = [[-1,-1], -1, -1]
+
+		#print(depth)
+		if(depth == 2):
+			#print(boardInstance)
+			#print(self.eval(boardInstance, maxRow))
+			return self.eval(boardInstance, maxRow), currentParentMove
+
+		available_moves = self.get_available_moves(boardInstance)
+
+		#print(boardInstance)
+
+		for av in range(len(available_moves)):
+		#for av in range(3):
+
+			move = available_moves[av]
+
+			#print(move)
+
+			pos = move[0]
+			r = move[1]
+			c = move[2]
+		
+			
+			tmpBoardInstance = np.copy(boardInstance)
+			tmpBoardInstance[pos] = 1
+			tmpBoardInstance[(pos[0] + r, pos[1] + c)] = 2
+
+			#print(tmpBoardInstance)
+			#print(boardInstance)
+			#print(pos, r, c)
+			childScore, childMove = self.minimax(tmpBoardInstance, player, depth + 1, not maxRow)
+			#print(childScore)
+			#print(tmpBoardInstance)
+
+			#print("Childscore: ", childScore)
+
+			if(maxRow):
+				#print(childScore, currentParentScore)
+				if childScore > currentParentScore:
+					currentParentScore = childScore
+					currentParentMove = move
+					#print(currentParentMove)
+			else:
+				if childScore < currentParentScore:
+					currentParentScore = childScore
+					currentParentMove = move
+			
+		return currentParentScore, currentParentMove
+
 
 	def make_move(self):
 		# Makes a random move
 		# Does not (yet) know the available positions.
-		print('\n{} making move'.format(self.name))
+		#print('\n{} making move'.format(self.name))
 		self.update_board()
-		self.print_paths()
-		self.print_board()
 
 		# Find available moves and pick a random one
-		available_moves = self.get_available_moves(self.board)
+		#available_moves = self.get_available_moves(self.board)
+		#print('available moves', len(available_moves))
 		# self.update_available_moves()
-		move = available_moves[random.randint(0, len(available_moves)-1)]
+
+		#move = available_moves[random.randint(0, len(available_moves)-1)]
+		#print(move)
+		#pos = move[0]
+		#r = move[1]
+		#c = move[2]
+
+		#print("Eval from mini",
+		
+		miniScore, miniMove = self.minimax(self.board, self.player, 0, True)#)
+
+		move = miniMove
+		#print(move)
+		#print(miniScore)
+
 		pos = move[0]
 		r = move[1]
 		c = move[2]
 
-		self.minimax(self.board, self.player, 0)
+		#print(move)
 		
-		print('available moves: ', len(available_moves))
-		print('Place tile on {} r={}, c={}'.format(pos,r,c))
+		#print('available moves: ', len(available_moves))
+		#print('Place tile on {} r={}, c={}'.format(pos,r,c))
+
 		
 		if r == 1 and c == 0:
 			return (pos), 1
@@ -149,9 +221,11 @@ class Agent:
 		self.update_board()
 		one_paths = self.find_paths(self.board, 1)
 		two_paths = self.find_paths(self.board, 2)
+		empty_paths = self.find_paths(self.board, 0)
 		
 		print('Longest sequence of whites: ', len(one_paths[0]))
 		print('Longest sequence of blues: ', len(two_paths[0]))
+		print('Longest path of empty', len(empty_paths[0]))
 		print('Evaluation function: ', self.eval(self.board))
 
 	def print_board(self):

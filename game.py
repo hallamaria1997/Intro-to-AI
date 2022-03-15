@@ -21,6 +21,7 @@ class Game:
     tileSelected = False
     validated = False
     agentsTurn = False
+    game_active = True
 
     def __init__(self):
         pygame.init()
@@ -71,7 +72,8 @@ class Game:
     def getAgentMove(self):
         while(self.agentsTurn == True):
             pos, self.selectedType = self.agent.make_move()
-            mod_pos = ((50*pos[0])+255, (50*pos[1])+255)
+            #print("type from game", self.selectedType)
+            mod_pos = ((50*pos[1])+225, (50*pos[0])+225)
             self.placeTile(mod_pos)
 
     def selectTile(self, pos):
@@ -90,28 +92,39 @@ class Game:
     
     def validateMove(self, index):
         if(self.selectedType == 1 \
-            and (index + 1) < 72 \
-            and self.grid.rectsColors[index] == BLOCKCOLOR \
-            and self.grid.rectsColors[index + 9] == BLOCKCOLOR):
+            and (index + 1) <= 72 \
+            and self.board[index] == 0 \
+            and self.board[index + 9] == 0):
             return True
 
         elif(self.selectedType == 2 \
             and (index + 1) % 9 > 0 \
-            and self.grid.rectsColors[index] == BLOCKCOLOR \
-            and self.grid.rectsColors[index + 1] == BLOCKCOLOR):
+            and self.board[index] == 0 \
+            and self.board[index + 1] == 0):
             return True
 
         elif(self.selectedType == 3 \
-            and (index + 1) < 72 \
-            and self.grid.rectsColors[index] == BLOCKCOLOR \
-            and self.grid.rectsColors[index + 9] == BLOCKCOLOR):
+            and (index + 1) <= 72 \
+            and self.board[index] == 0 \
+            and self.board[index + 9] == 0):
             return True
 
         elif(self.selectedType == 4 \
             and (index + 1) % 9 > 0 \
-            and self.grid.rectsColors[index] == BLOCKCOLOR \
-            and self.grid.rectsColors[index + 1] == BLOCKCOLOR):
+            and self.board[index] == 0 \
+            and self.board[index + 1] == 0):
             return True
+
+        #else:
+        #    print(self.selectedType, index)
+        #    print("types 1 og 3", (index + 1) < 72)
+        #    print("types 2 og 4", (index + 1) % 9 > 0)
+        #    print("komin í bobbba í game")
+            #print(self.grid.rectsColors[index])
+            #print(self.grid.rectsColors[index + 1])
+            #print(self.grid.rectsColors[index + 9])
+        #    print(self.get_board())
+            #print(np.reshape(self.grid.rectsColors, (9,9)))
     
     def get_board(self):
         return np.reshape(self.board, (9,9))
@@ -121,6 +134,9 @@ class Game:
         for r in self.grid.rects:
             if r.collidepoint(pos):
                 self.validated = self.validateMove(index)
+                #print("Is move valid?" , self.validated)
+                #print("trying to put here: " ,index)
+                #print("type :", self.selectedType)
                 if(self.selectedType == 1 and self.validated):
                     self.board[index] = 1
                     self.board[index + 9] = 2 
@@ -179,14 +195,100 @@ class Game:
         return
 
     def checkIfGameOver(self):
-        for i in range(0,8,1):
-            for j in range(0,8,1):
-                self.grid.width[i*j + j] = 100
+        #print(self.get_board())
+        #print((self.find_paths(self.get_board(), 0)))
+        if(len(self.find_paths(self.get_board(), 0)[0]) < 2):
+            self.game_active = False
+
+    def get_available_moves(self,board):
+        moves = []
+        rows, cols = board.shape
+        dirs = ['l', 'r', 'u', 'd']
+
+        for i in range(rows):
+            for j in range(cols):
+                for d in dirs:
+                    pos = (i,j)
+                    r,c = self.get_r_c(d)
+                    if self.position_ok(board,pos, r, c):
+                        moves.append((pos, r,c,))
+        return moves
+    
+    def get_r_c(self, dir):
+        # Translate the direction into numbers
+        if dir == 'r':
+            r = 0
+            c = 1
+        elif dir == 'l':
+            r = 0
+            c = -1
+        elif dir == 'u':
+            r = -1
+            c = 0
+        elif dir == 'd':
+            r = 1
+            c = 0
+        return r, c
+
+    def position_ok(self, board, pos, r, c):
+        n_rows, n_cols = board.shape
+        if pos[0] + r + 1 >= n_rows:
+            return False
+        if pos[0] + r < 0:
+            return False
+        if pos[1] + c + 1 >= n_cols:
+            return False
+        if pos[1] + c < 0:
+            return False
+        if (board[pos] != 0 or board[(pos[0]+r, pos[1]+c)] != 0):
+            return False
+        return True
+
+    def is_adj(self, c1, c2):
+        s = abs(c1[0]-c2[0]) + abs(c1[1]-c2[1])
+        return s == 1
+
+    def merge_paths(self, adj_lists):
+		# Merge the neighbour lists into complete paths
+        merges = 1
+        while merges != 0:
+            merges = 0
+            for i, a in enumerate(adj_lists):
+                for j, b in enumerate(adj_lists):
+                    if j != i and len(set(adj_lists[i]).intersection(set(b))) > 0:
+                        merges += 1
+                        new_set = list(set(adj_lists[i]).union(b))
+                        adj_lists[i] = new_set
+                        adj_lists[j] = []
+
+		# Sort by length and delete empty paths
+        adj_lists = sorted(adj_lists, key=lambda l: len(l), reverse=True)
+        adj_lists = [i for i in adj_lists if len(i) > 0]
+        return adj_lists
+
+    def find_paths(self, board, n):
+		# Locations of the value n on the board
+        locs = np.where(board==n)
+        coords = list(zip(locs[0], locs[1]))
+        adj_lists = []
+
+		# Finds the neighbour of each n-value
+        for i, c1 in enumerate(coords):
+            adj_lists.append([c1])
+            for j, c2 in enumerate(coords):
+                if i != j and self.is_adj(c1, c2):
+                    adj_lists[i].append(c2)
+		
+		# Merges the neighbors into paths
+        paths = self.merge_paths(adj_lists)
+
+        return paths
+
 
 if __name__ == "__main__":
     game = Game()
-    game_active = True
-    while game_active:
+    while game.game_active:
+        game.checkIfGameOver()
         game.draw_grid()
         game.draw_blocks()   
         for event in pygame.event.get():
@@ -195,7 +297,7 @@ if __name__ == "__main__":
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 game.action(pos)
-                print(game.get_board())
+                #print(game.get_board())
         game.game_window.fill((BOARDCOLOR)) 
         game.draw_grid() 
         game.draw_blocks()      
