@@ -113,22 +113,33 @@ class Agent:
 			return len(white_paths[0]) - len(black_paths[0])
 		else:
 			return len(black_paths[0]) - len(white_paths[0])
+
+	def eval2(self, board, maxRow):
+
+		white_paths = self.find_paths(board, 1)
+		black_paths = self.find_paths(board, 2)
+
+		if(maxRow):
+			if(len(white_paths) > 1 & len(black_paths) > 1):
+				return len(white_paths[0]) + len(white_paths[1]) - len(black_paths[0]) - len(black_paths[1])
+			return len(white_paths[0]) - len(black_paths[0])
+		else:
+			if(len(white_paths) > 1 & len(black_paths) > 1):
+				return len(black_paths[0]) + len(black_paths[1]) - len(white_paths[0]) - len(white_paths[1])
+			return len(black_paths[0]) - len(white_paths[0])
 			
 
 	def minimax(self, boardInstance, player, depth, maxRow):
 
 		if(maxRow):
-			currentParentScore = -81
+			currentParentScore = -np.inf
 		else:
-			currentParentScore = 81
+			currentParentScore = np.inf
 
 		currentParentMove = [[-1,-1], -1, -1]
 
-		#print(depth)
 		if(depth == 2):
-			#print(boardInstance)
-			#print(self.eval(boardInstance, maxRow))
-			return self.eval(boardInstance, maxRow), currentParentMove
+			return self.eval2(boardInstance, maxRow), currentParentMove
 
 		available_moves = self.get_available_moves(boardInstance)
 
@@ -173,6 +184,69 @@ class Agent:
 		return currentParentScore, currentParentMove
 
 
+	def minimax_alphabeta(self, boardInstance, player, depth, maxRow, alpha, beta):
+
+		if(maxRow):
+			currentParentScore = -np.inf
+		else:
+			currentParentScore = np.inf
+
+		currentParentMove = [[-1,-1], -1, -1]
+
+		if(depth == 2):
+			return self.eval2(boardInstance, maxRow), currentParentMove
+
+		available_moves = self.get_available_moves(boardInstance)
+
+		#print(boardInstance)
+
+		for av in range(len(available_moves)):
+		#for av in range(3):
+
+			move = available_moves[av]
+
+			#print(move)
+
+			pos = move[0]
+			r = move[1]
+			c = move[2]
+		
+			
+			tmpBoardInstance = np.copy(boardInstance)
+			tmpBoardInstance[pos] = 1
+			tmpBoardInstance[(pos[0] + r, pos[1] + c)] = 2
+
+			#print(tmpBoardInstance)
+			#print(boardInstance)
+			#print(pos, r, c)
+			childScore, childMove = self.minimax_alphabeta(tmpBoardInstance, player, depth + 1, not maxRow, alpha, beta)
+			#print(childScore)
+			#print(tmpBoardInstance)
+
+			#print("Childscore: ", childScore)
+
+			if(maxRow):
+				#print(childScore, currentParentScore)
+				if childScore > currentParentScore:
+					currentParentScore = childScore
+					currentParentMove = move
+					alpha = max(alpha, currentParentScore)
+					#print(currentParentMove)
+				if beta <= alpha:
+					break
+			else:
+				if childScore < currentParentScore:
+					currentParentScore = childScore
+					currentParentMove = move
+					beta = min(beta, currentParentScore)
+				if beta <= alpha:
+					break
+
+			
+			
+		return currentParentScore, currentParentMove
+
+
 	def make_move(self):
 		# Makes a random move
 		# Does not (yet) know the available positions.
@@ -192,7 +266,9 @@ class Agent:
 
 		#print("Eval from mini",
 		
-		miniScore, miniMove = self.minimax(self.board, self.player, 0, True)#)
+		#miniScore, miniMove = self.minimax(self.board, self.player, 0, True)
+
+		miniScore, miniMove = self.minimax_alphabeta(self.board, self.player, 0, True, -np.inf, np.inf)
 
 		move = miniMove
 		#print(move)

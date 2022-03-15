@@ -5,6 +5,7 @@ from grid import Grid
 from agent import Agent
 from agent_thordur import AgentAPI
 import numpy as np
+import pygame.freetype  # Import the freetype module.
 
 # GAME WINDOW
 WINDOWWIDTH = 900
@@ -22,6 +23,7 @@ class Game:
     validated = False
     agentsTurn = False
     game_active = True
+    game_over = False
 
     def __init__(self):
         pygame.init()
@@ -56,6 +58,13 @@ class Game:
     def draw_grid(self):
         self.block_size = 50
         self.grid.display(self.game_window)
+
+    def draw_over(self):
+        #skrifa stöðuna
+        #len(black_paths[0]) + len(black_paths[1]) 
+        #len(white_paths[0]) - len(white_paths[1])
+        rect = pygame.Rect(250, 250, 100, 100)
+        pygame.draw.rect(self.game_window, (246,19,34), rect, 0)
 
     def draw_blocks(self):
 
@@ -198,7 +207,7 @@ class Game:
         #print(self.get_board())
         #print((self.find_paths(self.get_board(), 0)))
         if(len(self.find_paths(self.get_board(), 0)[0]) < 2):
-            self.game_active = False
+            self.game_over = True
 
     def get_available_moves(self,board):
         moves = []
@@ -288,7 +297,6 @@ class Game:
 if __name__ == "__main__":
     game = Game()
     while game.game_active:
-        game.checkIfGameOver()
         game.draw_grid()
         game.draw_blocks()   
         for event in pygame.event.get():
@@ -300,8 +308,16 @@ if __name__ == "__main__":
                 #print(game.get_board())
         game.game_window.fill((BOARDCOLOR)) 
         game.draw_grid() 
-        game.draw_blocks()      
+        game.draw_blocks()    
         pygame.display.flip()
+
+        while(game.game_over):
+            game.draw_over()
+            if event.type == pygame.MOUSEBUTTONUP:
+                #búa til clear grid
+                #búa til clear blocks
+                game.game_over = False
+
 
 pygame.quit()
 quit()
