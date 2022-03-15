@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import random
 
 class Agent:
 	def __init__(self, name=None, board=None):
@@ -8,8 +9,8 @@ class Agent:
 		self.update_board()
 		self.n_rows, self.n_cols = self.board.shape
 		self.dirs = ['l', 'r', 'u', 'd']
-		self.player = 1 # temporary solution: indicates this is the second player. Will later be able to distinguish between two agents
-	
+		self.player = None
+
 	def update_board(self):
 		self.board = self.boardAPI.get_board()
 
@@ -101,7 +102,7 @@ class Agent:
 
 		return paths
 	
-	def eval(self, board, maxRow):
+	def eval(self, board, maxRow, player):
 
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
@@ -109,24 +110,43 @@ class Agent:
 		#print(white_paths[0])
 		#print(black_paths[0])
 
-		if(maxRow):
-			return len(white_paths[0]) - len(black_paths[0])
+		if(player == 1):
+			if(maxRow):
+				return len(white_paths[0]) - len(black_paths[0])
+			else:
+				return len(black_paths[0]) - len(white_paths[0])
 		else:
-			return len(black_paths[0]) - len(white_paths[0])
+			if(maxRow):
+				return len(black_paths[0]) - len(white_paths[0])
+			else:
+				return len(white_paths[0]) - len(black_paths[0])
+				
 
-	def eval2(self, board, maxRow):
+	def eval2(self, board, maxRow, player):
 
+		#print("evaluating for player: ", player)
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
 
-		if(maxRow):
-			if(len(white_paths) > 1 & len(black_paths) > 1):
-				return len(white_paths[0]) + len(white_paths[1]) - len(black_paths[0]) - len(black_paths[1])
-			return len(white_paths[0]) - len(black_paths[0])
+		if(player == 1):
+			if(maxRow):
+				if(len(white_paths) > 1 & len(black_paths) > 1):
+					return len(white_paths[0]) + len(white_paths[1]) - len(black_paths[0]) - len(black_paths[1])
+				return len(white_paths[0]) - len(black_paths[0])
+			else:
+				if(len(white_paths) > 1 & len(black_paths) > 1):
+					return len(black_paths[0]) + len(black_paths[1]) - len(white_paths[0]) - len(white_paths[1])
+				return len(black_paths[0]) - len(white_paths[0])
 		else:
-			if(len(white_paths) > 1 & len(black_paths) > 1):
-				return len(black_paths[0]) + len(black_paths[1]) - len(white_paths[0]) - len(white_paths[1])
-			return len(black_paths[0]) - len(white_paths[0])
+			if(maxRow):
+				if(len(white_paths) > 1 & len(black_paths) > 1):
+					return len(black_paths[0]) + len(black_paths[1]) - len(white_paths[0]) - len(white_paths[1])
+				return len(black_paths[0]) - len(white_paths[0])
+			else:
+				if(len(white_paths) > 1 & len(black_paths) > 1):
+					return len(white_paths[0]) + len(white_paths[1]) - len(black_paths[0]) - len(black_paths[1])
+				return len(white_paths[0]) - len(black_paths[0])
+				
 			
 
 	def minimax(self, boardInstance, player, depth, maxRow):
@@ -139,7 +159,7 @@ class Agent:
 		currentParentMove = [[-1,-1], -1, -1]
 
 		if(depth == 2):
-			return self.eval2(boardInstance, maxRow), currentParentMove
+			return self.eval2(boardInstance, maxRow, player), currentParentMove
 
 		available_moves = self.get_available_moves(boardInstance)
 
@@ -165,6 +185,7 @@ class Agent:
 			#print(boardInstance)
 			#print(pos, r, c)
 			childScore, childMove = self.minimax(tmpBoardInstance, player, depth + 1, not maxRow)
+
 			#print(childScore)
 			#print(tmpBoardInstance)
 
@@ -194,7 +215,7 @@ class Agent:
 		currentParentMove = [[-1,-1], -1, -1]
 
 		if(depth == 2):
-			return self.eval2(boardInstance, maxRow), currentParentMove
+			return self.eval2(boardInstance, maxRow, player), currentParentMove
 
 		available_moves = self.get_available_moves(boardInstance)
 
@@ -246,8 +267,27 @@ class Agent:
 			
 		return currentParentScore, currentParentMove
 
+	def random_move(self):
+		x = random.randint(2,6)
+		y = random.randint(2,6)
+		pos = (x,y)
+		r = random.randint(-1,1)
+		c = random.randint(-1,1)
+		
+		if r == 1 and c == 0:
+			return (pos), 1
+		elif r == 0 and c == 1:
+			return (pos), 2
+		elif r == -1 and c == 0:
+			return (pos[0] + r, pos[1] + c), 3
+		elif r == 0 and c == -1:
+			return (pos[0] + r, pos[1] + c), 4
+		else:
+			return (pos), 1
 
-	def make_move(self):
+
+	def make_move(self, player):
+		self.player = player
 		# Makes a random move
 		# Does not (yet) know the available positions.
 		#print('\n{} making move'.format(self.name))
@@ -269,6 +309,7 @@ class Agent:
 		#miniScore, miniMove = self.minimax(self.board, self.player, 0, True)
 
 		miniScore, miniMove = self.minimax_alphabeta(self.board, self.player, 0, True, -np.inf, np.inf)
+		#print("returning minimax alphabeta with player: ", self.player)
 
 		move = miniMove
 		#print(move)
@@ -302,7 +343,7 @@ class Agent:
 		print('Longest sequence of whites: ', len(one_paths[0]))
 		print('Longest sequence of blues: ', len(two_paths[0]))
 		print('Longest path of empty', len(empty_paths[0]))
-		print('Evaluation function: ', self.eval(self.board))
+		#print('Evaluation function: ', self.eval(self.board))
 
 	def print_board(self):
 		print(self.board)
@@ -312,5 +353,8 @@ class AgentAPI:
 	def __init__(self, name, board):
 		self.agent = Agent(name=name, board=board)
 
-	def make_move(self):
-		return self.agent.make_move()
+	def make_move(self, player):
+		return self.agent.make_move(player)
+
+	def random_move(self):
+		return self.agent.random_move()

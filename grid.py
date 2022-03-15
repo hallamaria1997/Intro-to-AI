@@ -11,6 +11,9 @@ BLOCKCOLOR = (245,0,124)
 class Grid:
 
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.block_size = 50
         self.rects = []
         self.rectsColors = []
