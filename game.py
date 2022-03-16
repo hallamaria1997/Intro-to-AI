@@ -461,8 +461,8 @@ if __name__ == "__main__":
                 pos = pygame.mouse.get_pos()
                 game.action(pos)
                 index += 1 #only for testing, TODO delete
-                if(index == 20):
-                    game.game_over = True
+                #if(index == 20):
+                #    game.game_over = True
                 #print(game.get_board())
         game.game_window.fill((BOARDCOLOR)) 
         game.draw_grid() 
