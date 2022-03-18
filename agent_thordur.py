@@ -123,34 +123,85 @@ class Agent:
 				
 
 	def eval2(self, board, maxRow, player):
-
+		# I might make an array that keeps a score of "how extensible" the 
+		# paths are, and then use these scores as weights to multiply the
+		# lengths of the paths.
+		# OR
+		# I'll find the "active paths" which is paths that can be expanded at
+		# all and give them the value 1 and the "closed paths" the value 0
 		#print("evaluating for player: ", player)
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
 
 		if(player == 1):
 			if(maxRow):
-				if(len(white_paths) > 1 & len(black_paths) > 1):
+				if(len(white_paths) > 1 and len(black_paths) > 1):
 					return len(white_paths[0]) + len(white_paths[1]) - len(black_paths[0]) - len(black_paths[1])
 				return len(white_paths[0]) - len(black_paths[0])
 			else:
-				if(len(white_paths) > 1 & len(black_paths) > 1):
+				if(len(white_paths) > 1 and len(black_paths) > 1):
 					return len(black_paths[0]) + len(black_paths[1]) - len(white_paths[0]) - len(white_paths[1])
 				return len(black_paths[0]) - len(white_paths[0])
 		else:
 			if(maxRow):
-				if(len(white_paths) > 1 & len(black_paths) > 1):
+				if(len(white_paths) > 1 and len(black_paths) > 1):
 					return len(black_paths[0]) + len(black_paths[1]) - len(white_paths[0]) - len(white_paths[1])
 				return len(black_paths[0]) - len(white_paths[0])
 			else:
-				if(len(white_paths) > 1 & len(black_paths) > 1):
+				if(len(white_paths) > 1 and len(black_paths) > 1):
 					return len(white_paths[0]) + len(white_paths[1]) - len(black_paths[0]) - len(black_paths[1])
 				return len(white_paths[0]) - len(black_paths[0])
-				
-			
+	
+	def find_neighbors(self, pos):
+		positions = [(pos[0] - 1, pos[1]), (pos[0] + 1, pos[1])
+					, (pos[0], pos[1] - 1), (pos[0], pos[1] + 1)]
+
+		neighbors = [p for p in positions if (p[0] > -1 and p[0] < 9 and p[1] > -1 and p[1] < 9)]
+		#print('find_neighbors', neighbors)
+		return neighbors
+
+	def extensibility(self, paths, board):
+		# TODO Fix this function
+		ext = np.array([])
+		for path in paths:
+			neighbors = set()
+			for pos in path:
+				neighbors = neighbors.union(set(self.find_neighbors(pos)))
+				neighbor_values = np.array([board[n] for n in list(neighbors)])
+			ext = np.append(ext, (neighbor_values==0).astype(int).sum())
+
+		return ext
+
+	def eval3(self, board, maxRow, player):
+		white_paths = self.find_paths(board, 1)
+		black_paths = self.find_paths(board, 2)
+
+		white_lengths = np.array([len(i) for i in white_paths])
+		black_lengths = np.array([len(i) for i in black_paths])
+
+		white_ext = self.extensibility(white_paths, board)
+		black_ext = self.extensibility(black_paths, board)
+
+		# print('white_lengths', white_lengths)
+		# print('white_extensi', white_ext)
+		# print('black paths__', black_paths)
+		# print('black_lenghts', black_lengths)
+		# print('black_extensi', black_ext)
+		#print(white_paths[0])
+		#print(black_paths[0])
+
+		if(player == 1):
+			if(maxRow):
+				return np.dot(white_lengths, white_ext) - np.dot(black_lengths, black_ext)
+			else:
+				return np.dot(black_lengths, black_ext) - np.dot(white_lengths, white_ext)
+		else:
+			if(maxRow):
+				return np.dot(black_lengths, black_ext) - np.dot(white_lengths, white_ext)
+			else:
+				return np.dot(white_lengths, white_ext) - np.dot(black_lengths, black_ext)
 
 	def minimax(self, boardInstance, player, depth, maxRow):
-
 		if(maxRow):
 			currentParentScore = -np.inf
 		else:
@@ -204,7 +255,7 @@ class Agent:
 			
 		return currentParentScore, currentParentMove
 
-
+	# Minimax with alpha-beta pruning
 	def minimax_alphabeta(self, boardInstance, player, depth, maxRow, alpha, beta):
 
 		if(maxRow):
@@ -215,7 +266,7 @@ class Agent:
 		currentParentMove = [[-1,-1], -1, -1]
 
 		if(depth == 2):
-			return self.eval2(boardInstance, maxRow, player), currentParentMove
+			return self.eval3(boardInstance, maxRow, player), currentParentMove
 
 		available_moves = self.get_available_moves(boardInstance)
 
@@ -261,9 +312,7 @@ class Agent:
 					currentParentMove = move
 					beta = min(beta, currentParentScore)
 				if beta <= alpha:
-					break
-
-			
+					break			
 			
 		return currentParentScore, currentParentMove
 
@@ -323,7 +372,6 @@ class Agent:
 		
 		#print('available moves: ', len(available_moves))
 		#print('Place tile on {} r={}, c={}'.format(pos,r,c))
-
 		
 		if r == 1 and c == 0:
 			return (pos), 1
