@@ -98,7 +98,7 @@ class Game:
         wonText = font2.render(winner , True , color)
 
         self.screen.blit(gameOverText , (self.width/2 - 200 ,self.height/2 - 90)) 
-        self.screen.blit(wonText , (self.width/2 - 170 ,self.height/2 + 10)) 
+        self.screen.blit(wonText , (self.width/2 - 190 ,self.height/2 + 10)) 
 
     def draw_blocks(self):
 
