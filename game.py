@@ -225,6 +225,7 @@ class Game:
 
     #actions can be quitting the game, restarting and placing a tile
     #if there are two agents then this get's a move for each one
+    #if there are two agents the first move will be chosen randomly, so each game wouldn't be exactly the same
     def action(self, pos):  
         if (self.width/2 + 10 <= pos[0] <= self.width/2+150 and self.height - 50 <= pos[1] <= self.height - 10):
             pygame.quit()
