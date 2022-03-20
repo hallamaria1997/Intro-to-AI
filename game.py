@@ -70,10 +70,12 @@ class Game:
         pygame.display.flip()
         pygame.display.update()
 
+    #draws the grid of the board
     def draw_grid(self):
         self.block_size = 50
         self.grid.display(self.game_window)
 
+    #if the game is over this window is drawn with the score and winner
     def draw_over(self):
         rect = pygame.Rect(140, 140, 620, 620)
         pygame.draw.rect(self.game_window, (0,0,0), rect, 500)
@@ -111,12 +113,14 @@ class Game:
             b.draw(d['x'], d['y'], self.game_window, BLOCKCOLORFILLBLUE)
             self.blocks.append(b)
 
+    #calling the agent logic for it's next move
     def getAgentMove(self, player):
         while(self.agentsTurn == True):
             pos, self.selectedType = self.agent.make_move(player)
             mod_pos = ((50*pos[1])+225, (50*pos[0])+225)
             self.placeTile(mod_pos)
 
+    #checks if a tile is selected
     def selectTile(self, pos):
         for b in self.blocks:
             if b.get_rect().collidepoint(pos):
@@ -133,7 +137,10 @@ class Game:
                 elif b.block_type == 4:
                     self.selectedType = 4
                     self.selectedTile = "4"
-    
+    #checks is a move is valid.
+    #whether or not a move is valid depens on the placement and orientation of the selected tiles
+    #types 1 and 3 are vertical and can't be placed in the lowest row
+    #types 2 and 4 are horizontal and can't be places in the right most column
     def validateMove(self, index):
         if(self.selectedType == 1 \
             and (index + 1) <= 72 \
@@ -159,9 +166,11 @@ class Game:
             and self.board[index + 1] == 0):
             return True
     
+    #changes the board array to a matrix
     def get_board(self):
         return np.reshape(self.board, (9,9))
 
+    #tile is validated and then placed
     def placeTile(self, pos):
         index = 0
         for r in self.grid.rects:
@@ -214,6 +223,8 @@ class Game:
             index += 1
         return
 
+    #actions can be quitting the game, restarting and placing a tile
+    #if there are two agents then this get's a move for each one
     def action(self, pos):  
         if (self.width/2 + 10 <= pos[0] <= self.width/2+150 and self.height - 50 <= pos[1] <= self.height - 10):
             pygame.quit()
@@ -248,11 +259,12 @@ class Game:
                 self.getAgentMove(self.player)
 
         return
-
+    #checks if the paths of empty tiles are less then 2
     def checkIfGameOver(self):
         if(len(self.find_paths(self.get_board(), 0)[0]) < 2):
             self.game_over = True
 
+    #gets all available moves on the board, where there are two empty adjacent tiles
     def get_available_moves(self,board):
         moves = []
         rows, cols = board.shape
@@ -283,6 +295,7 @@ class Game:
             c = 0
         return r, c
 
+    #validates that a position is ok, with the same logic as the agent uses
     def position_ok(self, board, pos, r, c):
         n_rows, n_cols = board.shape
         if pos[0] + r + 1 >= n_rows:
@@ -397,13 +410,15 @@ class Game:
         taijiText = taijiFont.render('TAIJI' , True , color)
         self.screen.blit(taijiText , (self.width/2 - 70 , 20)) 
 
-
+    #is the board is reset the board is changed to empty cells, game over is changed to false
+    #and the first move is set true
     def reset(self):
         self.grid.reset()
         self.board = [0]*9*9
         self.firstMove = True
         self.game_over = False
 
+    #the two longest paths for each color are added together
     def get_scores(self):
         white_paths = self.find_paths(self.get_board(), 1)
         black_paths = self.find_paths(self.get_board(), 2)
@@ -442,6 +457,8 @@ class Game:
         self.screen.blit(blackText , (30 , self.height - 100)) 
         self.screen.blit(whiteText , (self.width - 100 , self.height - 100)) 
 
+    #if there is one player and one agent this draws which one the player is
+    #it is always the blue player
     def draw_player(self):
         if(self.agentNum == 1):
 
@@ -452,6 +469,7 @@ class Game:
             blackText = font.render(black , True , color)
             self.screen.blit(blackText , (30 , self.height - 140)) 
 
+    #highlight the selected tile
     def draw_selectedType(self):
         if(self.tileSelected):
             if(self.selectedTile == "1"):
