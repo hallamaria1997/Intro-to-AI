@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import random
 
 class Agent:
 	def __init__(self, name=None, board=None):
@@ -343,11 +342,11 @@ class Agent:
 		self.update_board()
 
 		# Find available moves and pick a random one
-		#available_moves = self.get_available_moves(self.board)
+		available_moves = self.get_available_moves(self.board)
 		#print('available moves', len(available_moves))
 		# self.update_available_moves()
 
-		#move = available_moves[random.randint(0, len(available_moves)-1)]
+		move = available_moves[random.randint(0, len(available_moves)-1)]
 		#print(move)
 		#pos = move[0]
 		#r = move[1]
@@ -360,7 +359,7 @@ class Agent:
 		miniScore, miniMove = self.minimax_alphabeta(self.board, self.player, 0, True, -np.inf, np.inf)
 		#print("returning minimax alphabeta with player: ", self.player)
 
-		move = miniMove
+		# move = miniMove
 		#print(move)
 		#print(miniScore)
 
