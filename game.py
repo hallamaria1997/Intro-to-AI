@@ -3,23 +3,25 @@ import pygame
 from pygame.locals import * 
 from block import Block
 from grid import Grid
-from agent import Agent
-from agent_thordur import AgentAPI
+from agent import AgentAPI
 import numpy as np
 import sys
 
 # GAME WINDOW
 WINDOWWIDTH = 900
-WINDOWHEIGHT = 900
+WINDOWHEIGHT = 850
 
 # COLORS
-BLOCKCOLORFILLWHITE = (250, 250, 250)
-BLOCKCOLORFILLBLUE = (4, 217, 255)
+BLOCKCOLORFILLWHITE = (220, 220, 220)
+BLOCKCOLORFILLBLUE = (0, 145, 255)
 BOARDCOLOR = (0,0,0)
 BLOCKCOLOR = (245,0,124)
 
+BLOCKCOLORFILLEXTRAWHITE= (255,255,255)
+BLOCKCOLORFILLEXTRABLUE = (172,217,252)
+
 class Game: 
-    selectedTile = []
+    selectedTile = ""
     tileSelected = False
     validated = False
     agentsTurn = False
@@ -37,10 +39,11 @@ class Game:
         self.game_window = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
         pygame.display.set_caption("Taiji")
         self.agentNum  = int(sys.argv[1])
-        res = (900,900)
+        res = (WINDOWWIDTH, WINDOWHEIGHT)
         self.screen = pygame.display.set_mode(res)
         self.width = self.screen.get_width()
         self.height = self.screen.get_height()
+        self.game_quit = False
 
         self.grid = Grid()
         self.board = [0]*9*9
@@ -68,24 +71,36 @@ class Game:
         pygame.display.flip()
         pygame.display.update()
 
+    #draws the grid of the board
     def draw_grid(self):
         self.block_size = 50
         self.grid.display(self.game_window)
 
+    #if the game is over this window is drawn with the score and winner
     def draw_over(self):
         rect = pygame.Rect(140, 140, 620, 620)
-        pygame.draw.rect(self.game_window, (255,255,255), rect, 500)
+        pygame.draw.rect(self.game_window, (0,0,0), rect, 500)
 
-        font = pygame.font.Font(pygame.font.get_default_font(), 50)
-        color = (0,0,0)
+        font = pygame.font.Font(pygame.font.get_default_font(), 56)
+        font2 = pygame.font.Font(pygame.font.get_default_font(), 30)
+        color = (255,255,255)
+        
+        blackscore, whitescore = self.get_scores()
+        winner = ""
+
+        if(blackscore > whitescore):
+            winner = "Blue wins with " + str(blackscore) + " points!!!"
+        else:
+            winner = "White wins with " + str(whitescore) + " points!!!"
         
         # rendering a text written in
         # this font
-        gameOverText = font.render('Game Over' , True , color)
-        wonText = font.render('Winner: XXX' , True , color)
 
-        self.screen.blit(gameOverText , (self.width/2 - 10 ,self.height/2 - 50)) 
-        self.screen.blit(wonText , (self.width/2 - 10 ,self.height/2)) 
+        gameOverText = font.render('~ Game Over ~' , True , color)
+        wonText = font2.render(winner , True , color)
+
+        self.screen.blit(gameOverText , (self.width/2 - 200 ,self.height/2 - 90)) 
+        self.screen.blit(wonText , (self.width/2 - 190 ,self.height/2 + 10)) 
 
     def draw_blocks(self):
 
@@ -99,27 +114,34 @@ class Game:
             b.draw(d['x'], d['y'], self.game_window, BLOCKCOLORFILLBLUE)
             self.blocks.append(b)
 
+    #calling the agent logic for it's next move
     def getAgentMove(self, player):
         while(self.agentsTurn == True):
             pos, self.selectedType = self.agent.make_move(player)
-            #print("type from game", self.selectedType)
             mod_pos = ((50*pos[1])+225, (50*pos[0])+225)
             self.placeTile(mod_pos)
 
+    #checks if a tile is selected
     def selectTile(self, pos):
         for b in self.blocks:
             if b.get_rect().collidepoint(pos):
-                self.selectedTile = b.get_rect()
                 self.tileSelected = True
                 if b.block_type == 1:
                     self.selectedType = 1
+                    self.selectedTile = "1"
                 elif b.block_type == 2:
                     self.selectedType = 2
+                    self.selectedTile = "2"
                 elif b.block_type == 3:
                     self.selectedType = 3
+                    self.selectedTile = "3"
                 elif b.block_type == 4:
                     self.selectedType = 4
-    
+                    self.selectedTile = "4"
+    #checks is a move is valid.
+    #whether or not a move is valid depens on the placement and orientation of the selected tiles
+    #types 1 and 3 are vertical and can't be placed in the lowest row
+    #types 2 and 4 are horizontal and can't be places in the right most column
     def validateMove(self, index):
         if(self.selectedType == 1 \
             and (index + 1) <= 72 \
@@ -144,29 +166,17 @@ class Game:
             and self.board[index] == 0 \
             and self.board[index + 1] == 0):
             return True
-
-        #else:
-        #    print(self.selectedType, index)
-        #    print("types 1 og 3", (index + 1) < 72)
-        #    print("types 2 og 4", (index + 1) % 9 > 0)
-        #    print("komin í bobbba í game")
-            #print(self.grid.rectsColors[index])
-            #print(self.grid.rectsColors[index + 1])
-            #print(self.grid.rectsColors[index + 9])
-        #    print(self.get_board())
-            #print(np.reshape(self.grid.rectsColors, (9,9)))
     
+    #changes the board array to a matrix
     def get_board(self):
         return np.reshape(self.board, (9,9))
 
+    #tile is validated and then placed
     def placeTile(self, pos):
         index = 0
         for r in self.grid.rects:
             if r.collidepoint(pos):
                 self.validated = self.validateMove(index)
-                #print("Is move valid?" , self.validated)
-                #print("trying to put here: " ,index)
-                #print("type :", self.selectedType)
                 if(self.selectedType == 1 and self.validated):
                     self.board[index] = 1
                     self.board[index + 9] = 2 
@@ -214,14 +224,16 @@ class Game:
             index += 1
         return
 
+    #actions can be quitting the game, restarting and placing a tile
+    #if there are two agents then this get's a move for each one
     def action(self, pos):  
-        if (self.width/2 + 10 <= pos[0] <= self.width/2+150 and self.height - 50 <= pos[1] <= self.height - 10):
+        if (self.width/2 + 10 <= pos[0] <= self.width/2+150 and self.height - 120 <= pos[1] <= self.height - 80):
             pygame.quit()
 
-        if (self.width/2 -150 <= pos[0] <= self.width/2 - 10 and self.height - 50 <= pos[1] <= self.height - 10):
+        if (self.width/2 - 150 <= pos[0] <= self.width/2 - 10 and self.height - 120 <= pos[1] <= self.height - 80):
             game.reset()
 
-        if(self.agentNum == 2):
+        if(self.agentNum == 2 and not self.game_over):
 
             if (self.agentNum == 2 and 30 <= pos[0] <= 30 + 180 and 30 <= pos[1] <= 30 + 40):
                 if(self.firstMove):
@@ -248,11 +260,12 @@ class Game:
                 self.getAgentMove(self.player)
 
         return
-
+    #checks if the paths of empty tiles are less then 2
     def checkIfGameOver(self):
         if(len(self.find_paths(self.get_board(), 0)[0]) < 2):
             self.game_over = True
 
+    #gets all available moves on the board, where there are two empty adjacent tiles
     def get_available_moves(self,board):
         moves = []
         rows, cols = board.shape
@@ -283,6 +296,7 @@ class Game:
             c = 0
         return r, c
 
+    #validates that a position is ok, with the same logic as the agent uses
     def position_ok(self, board, pos, r, c):
         n_rows, n_cols = board.shape
         if pos[0] + r + 1 >= n_rows:
@@ -364,31 +378,32 @@ class Game:
 
         # if mouse is hovered on a button it
         # changes to lighter shade 
-        if (self.width/2 + 10 <= pos[0] <= self.width/2+150 and self.height - 50 <= pos[1] <= self.height-10):
-            pygame.draw.rect(self.screen,color_light,[self.width/2,self.height - 50,140,40])
+        if (self.width/2 + 10 <= pos[0] <= self.width/2+150 and self.height - 120 <= pos[1] <= self.height - 80):
+            pygame.draw.rect(self.screen,color_light,[self.width/2 + 10, self.height - 120, 140, 40])
             
         else:
-            pygame.draw.rect(self.screen,color_dark,[self.width/2 + 10,self.height - 50,140,40])
+            pygame.draw.rect(self.screen,color_dark,[self.width/2 + 10, self.height - 120, 140, 40])
 
 
-        if (self.width/2 - 150 <= pos[0] <= self.width/2 - 10 and self.height - 50 <= pos[1] <= self.height-10):
-            pygame.draw.rect(self.screen,color_light,[self.width/2 - 150,self.height - 50,140,40])
+        if (self.width/2 - 150 <= pos[0] <= self.width/2 - 10 and self.height - 120 <= pos[1] <= self.height - 80):
+            pygame.draw.rect(self.screen,color_light,[self.width/2 - 150, self.height - 120, 140, 40])
             
         else:
-            pygame.draw.rect(self.screen,color_dark,[self.width/2 - 150,self.height - 50,140,40])
+            pygame.draw.rect(self.screen,color_dark,[self.width/2 - 150, self.height - 120, 140, 40])
 
-        if (self.agentNum == 2 and 30 <= pos[0] <= 30 + 180 and 30 <= pos[1] <= 30 + 40):
-            pygame.draw.rect(self.screen,color_light,[30,30,180,40])
-            
-        elif self.agentNum == 2:
-            pygame.draw.rect(self.screen,color_dark,[30, 30 ,180,40])
+        if(not self.game_over):
+            if (self.agentNum == 2 and 30 <= pos[0] <= 30 + 180 and 30 <= pos[1] <= 30 + 40):
+                pygame.draw.rect(self.screen, color_light, [30,30,180,40])
+                
+            elif self.agentNum == 2:
+                pygame.draw.rect(self.screen, color_dark, [30, 30 ,180,40])
 
-        if(self.agentNum == 2):
-            self.screen.blit(nextMoveText , (30, 30)) 
+            if(self.agentNum == 2):
+                self.screen.blit(nextMoveText , (30, 30)) 
 
         # superimposing the text onto our button
-        self.screen.blit(quitText , (self.width/2+25 + 10,self.height - 50)) 
-        self.screen.blit(restartText , (self.width/2+25 - 160,self.height - 50)) 
+        self.screen.blit(quitText , (self.width/2+25 + 10, self.height - 120)) 
+        self.screen.blit(restartText , (self.width/2+25 - 160, self.height - 120)) 
 
     def draw_name(self):
         color = (255,255,255)
@@ -396,14 +411,16 @@ class Game:
         taijiText = taijiFont.render('TAIJI' , True , color)
         self.screen.blit(taijiText , (self.width/2 - 70 , 20)) 
 
-
+    #is the board is reset the board is changed to empty cells, game over is changed to false
+    #and the first move is set true
     def reset(self):
         self.grid.reset()
         self.board = [0]*9*9
         self.firstMove = True
         self.game_over = False
 
-    def draw_scores(self):
+    #the two longest paths for each color are added together
+    def get_scores(self):
         white_paths = self.find_paths(self.get_board(), 1)
         black_paths = self.find_paths(self.get_board(), 2)
 
@@ -425,6 +442,12 @@ class Game:
             blackscore = len(black_paths[0]) + len(black_paths[1])
             whitescore = len(white_paths[0]) + len(white_paths[1])
 
+        return blackscore, whitescore
+
+
+    def draw_scores(self):
+
+        blackscore, whitescore = self.get_scores()
         black = "Blue: " + str(blackscore)
         white = "White: " + str(whitescore)
 
@@ -435,6 +458,8 @@ class Game:
         self.screen.blit(blackText , (30 , self.height - 100)) 
         self.screen.blit(whiteText , (self.width - 100 , self.height - 100)) 
 
+    #if there is one player and one agent this draws which one the player is
+    #it is always the blue player
     def draw_player(self):
         if(self.agentNum == 1):
 
@@ -445,25 +470,48 @@ class Game:
             blackText = font.render(black , True , color)
             self.screen.blit(blackText , (30 , self.height - 140)) 
 
+    #highlight the selected tile
+    def draw_selectedType(self):
+        if(self.tileSelected):
+            if(self.selectedTile == "1"):
+                info1 = self.white_block_info[0]
+                info2 = self.blue_block_info[0]
+            elif(self.selectedTile == "2"):
+                info1 = self.white_block_info[1]
+                info2 = self.blue_block_info[1]
+            elif(self.selectedTile == "3"):
+                info1 = self.white_block_info[2]
+                info2 = self.blue_block_info[2]
+            elif(self.selectedTile == "4"):
+                info1 = self.white_block_info[3]
+                info2 = self.blue_block_info[3]
+
+
+            b = Block(info1['type'])
+            b.draw(info1['x'], info1['y'], self.game_window, BLOCKCOLORFILLEXTRAWHITE)
+
+            b = Block(info2['type'])
+            b.draw(info2['x'], info2['y'], self.game_window, BLOCKCOLORFILLEXTRABLUE)
+
 
 
 if __name__ == "__main__":
 
     game = Game()
     index = 0
+
     while game.game_active:
         game.draw_grid()
-        game.draw_blocks()   
+        game.draw_blocks()  
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 game.action(pos)
-                index += 1 #only for testing, TODO delete
-                #if(index == 20):
-                #    game.game_over = True
-                #print(game.get_board())
+                index += 1
+
         game.game_window.fill((BOARDCOLOR)) 
         game.draw_grid() 
         game.draw_blocks() 
@@ -471,6 +519,8 @@ if __name__ == "__main__":
         game.draw_name()
         game.draw_scores()
         game.draw_player()
+        game.draw_selectedType()
+        game.checkIfGameOver()
 
         if(game.game_over):
             game.draw_over()
