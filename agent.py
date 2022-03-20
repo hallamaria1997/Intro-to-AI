@@ -103,7 +103,8 @@ class Agent:
 		return paths
 	
 	def eval(self, board, maxRow, player):
-
+		# This is the first one
+		# Only find the difference between the longest
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
 
@@ -120,13 +121,8 @@ class Agent:
 				
 
 	def eval2(self, board, maxRow, player):
-		# I might make an array that keeps a score of "how extensible" the 
-		# paths are, and then use these scores as weights to multiply the
-		# lengths of the paths.
-		# OR
-		# I'll find the "active paths" which is paths that can be expanded at
-		# all and give them the value 1 and the "closed paths" the value 0
-		#print("evaluating for player: ", player)
+		# Find the paths of each color and return 
+		# the differences in two longest paths
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
 
@@ -150,6 +146,8 @@ class Agent:
 				return len(white_paths[0]) - len(black_paths[0])
 	
 	def find_neighbors(self, pos):
+		# Finds all neighbors of the tile in position pos
+		# Returns an array of tuples
 		positions = [(pos[0] - 1, pos[1]), (pos[0] + 1, pos[1])
 					, (pos[0], pos[1] - 1), (pos[0], pos[1] + 1)]
 
@@ -157,6 +155,7 @@ class Agent:
 		return neighbors
 
 	def extensibility(self, paths, board):
+		# Finds by how many tiles each path can be extended
 		ext = np.array([])
 		for path in paths:
 			neighbors = set()
@@ -165,9 +164,15 @@ class Agent:
 				neighbor_values = np.array([board[n] for n in list(neighbors)])
 			ext = np.append(ext, (neighbor_values==0).astype(int).sum())
 
+		# Add 1 to the first two, so that it never becomes zero
+		# Then it is more likely to extend its longest path even
+		# though it becomes non-extensible
+		ext[:2] += 1
 		return ext
 
 	def eval3(self, board, maxRow, player):
+		# Returns the dot product of the path lengths vector
+		# and the extensibility vector minus the same for the opposing player
 		white_paths = self.find_paths(board, 1)
 		black_paths = self.find_paths(board, 2)
 
@@ -188,6 +193,7 @@ class Agent:
 			else:
 				return np.dot(white_lengths, white_ext) - np.dot(black_lengths, black_ext)
 
+	# Minimax without alpha-beta pruning
 	def minimax(self, boardInstance, player, depth, maxRow):
 		if(maxRow):
 			currentParentScore = -np.inf
@@ -207,8 +213,7 @@ class Agent:
 
 			pos = move[0]
 			r = move[1]
-			c = move[2]
-		
+			c = move[2]		
 			
 			tmpBoardInstance = np.copy(boardInstance)
 			tmpBoardInstance[pos] = 1
@@ -248,8 +253,7 @@ class Agent:
 
 			pos = move[0]
 			r = move[1]
-			c = move[2]
-		
+			c = move[2]		
 			
 			tmpBoardInstance = np.copy(boardInstance)
 			tmpBoardInstance[pos] = 1
@@ -275,6 +279,7 @@ class Agent:
 		return currentParentScore, currentParentMove
 
 	def random_move(self):
+		# Finds all available moves and selects a random one
 		x = random.randint(2,6)
 		y = random.randint(2,6)
 		pos = (x,y)
@@ -297,19 +302,21 @@ class Agent:
 		self.player = player
 		self.update_board()
 
-		#if we want random
+		# uncomment if we want random and comment next two
 		# Find available moves and pick a random one
-		#available_moves = self.get_available_moves(self.board)
-		#move = available_moves[random.randint(0, len(available_moves)-1)]
+		# available_moves = self.get_available_moves(self.board)
+		# move = available_moves[random.randint(0, len(available_moves)-1)]
 
 		miniScore, miniMove = self.minimax_alphabeta(self.board, self.player, 0, True, -np.inf, np.inf)
 
 		move = miniMove
 
+		# r and c control the alignment of the tile
 		pos = move[0]
 		r = move[1]
 		c = move[2]
 		
+		# Convert pos, r and into a format the game expects
 		if r == 1 and c == 0:
 			return (pos), 1
 		elif r == 0 and c == 1:
