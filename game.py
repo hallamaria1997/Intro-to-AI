@@ -3,8 +3,7 @@ import pygame
 from pygame.locals import * 
 from block import Block
 from grid import Grid
-from agent import Agent
-from agent_thordur import AgentAPI
+from agent import AgentAPI
 import numpy as np
 import sys
 
@@ -115,14 +114,12 @@ class Game:
     def getAgentMove(self, player):
         while(self.agentsTurn == True):
             pos, self.selectedType = self.agent.make_move(player)
-            #print("type from game", self.selectedType)
             mod_pos = ((50*pos[1])+225, (50*pos[0])+225)
             self.placeTile(mod_pos)
 
     def selectTile(self, pos):
         for b in self.blocks:
             if b.get_rect().collidepoint(pos):
-                #self.selectedTile = b.get_rect()
                 self.tileSelected = True
                 if b.block_type == 1:
                     self.selectedType = 1
@@ -161,17 +158,6 @@ class Game:
             and self.board[index] == 0 \
             and self.board[index + 1] == 0):
             return True
-
-        #else:
-        #    print(self.selectedType, index)
-        #    print("types 1 og 3", (index + 1) < 72)
-        #    print("types 2 og 4", (index + 1) % 9 > 0)
-        #    print("komin í bobbba í game")
-            #print(self.grid.rectsColors[index])
-            #print(self.grid.rectsColors[index + 1])
-            #print(self.grid.rectsColors[index + 9])
-        #    print(self.get_board())
-            #print(np.reshape(self.grid.rectsColors, (9,9)))
     
     def get_board(self):
         return np.reshape(self.board, (9,9))
@@ -181,9 +167,6 @@ class Game:
         for r in self.grid.rects:
             if r.collidepoint(pos):
                 self.validated = self.validateMove(index)
-                #print("Is move valid?" , self.validated)
-                #print("trying to put here: " ,index)
-                #print("type :", self.selectedType)
                 if(self.selectedType == 1 and self.validated):
                     self.board[index] = 1
                     self.board[index + 9] = 2 
@@ -449,8 +432,6 @@ class Game:
     def draw_scores(self):
 
         blackscore, whitescore = self.get_scores()
-        
-
         black = "Blue: " + str(blackscore)
         white = "White: " + str(whitescore)
 
