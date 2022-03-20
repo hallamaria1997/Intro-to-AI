@@ -78,7 +78,7 @@ class Game:
 
     #if the game is over this window is drawn with the score and winner
     def draw_over(self):
-        rect = pygame.Rect(140, 140, 620, 620)
+        rect = pygame.Rect(140, 140, 620, 580)
         pygame.draw.rect(self.game_window, (0,0,0), rect, 500)
 
         font = pygame.font.Font(pygame.font.get_default_font(), 56)
@@ -116,7 +116,7 @@ class Game:
 
     #calling the agent logic for it's next move
     def getAgentMove(self, player):
-        while(self.agentsTurn == True):
+        while(self.agentsTurn == True and not self.game_over):
             pos, self.selectedType = self.agent.make_move(player)
             mod_pos = ((50*pos[1])+225, (50*pos[0])+225)
             self.placeTile(mod_pos)
@@ -244,7 +244,9 @@ class Game:
                     self.firstMove = False
 
                 self.agentsTurn = True
-                self.getAgentMove(self.player)
+                self.checkIfGameOver()
+                if(not self.game_over):
+                    self.getAgentMove(self.player)
 
             if(self.player == 1):
                 self.player = 2
