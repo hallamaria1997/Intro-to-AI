@@ -116,6 +116,7 @@ class Game:
 
     #calling the agent logic for it's next move
     def getAgentMove(self, player):
+        self.checkIfGameOver()
         while(self.agentsTurn == True and not self.game_over):
             pos, self.selectedType = self.agent.make_move(player)
             mod_pos = ((50*pos[1])+225, (50*pos[0])+225)
