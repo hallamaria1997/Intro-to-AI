@@ -8,7 +8,7 @@ Install the requirements by running the command
 The most important thing is that the version of the ``pygame`` package has to be ``2.1.2``.
 
 ## Running
-Start the game by running the command ``python game.py 1`` if you want to play the game against the computer, or ``python game.py 2`` if you want to have two computer agents play against each other.
+Start the game by running the command ``python game.py 1`` if you want to play the game against the computer, or ``python game.py 2`` if you want to have two computer agents play against each other. The game is best played on a screen of size of more than 900x900px (unzoomed).
 
 ## Rules
 The human player always starts, and he has the colour blue, and the computer has white. The players take turns laying down tiles with one white half and one blue half, and try to make as long paths as they can of their colour. The game ends when there are no spaces left to place a tile. The lengths of the players' two longest paths are then added together, and the player with the higher sum wins. In case of a draw, the player who went second - in this case, that is always the computer - wins.
